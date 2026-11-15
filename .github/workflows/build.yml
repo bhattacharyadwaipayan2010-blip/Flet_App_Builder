@@ -6,39 +6,35 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-apk:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - name: Build APK
+        id: build_apk
+        uses: flet-dev/flet-build-action@v1
         with:
-          python-version: '3.12'
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Install Flet
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Build Android APK
-        run: flet build apk --yes
-
-      - name: Build Website
-        run: flet build web --yes
-
-      - name: Package Outputs
+          target: apk
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: my-finished-app
-          path: |
-            build/apk/*.apk
-            build/web/
-            
+          name: my-android-apk
+          path: ${{ steps.build_apk.outputs.archive-path }}
+          archive: false
+
+  build-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Website
+        id: build_web
+        uses: flet-dev/flet-build-action@v1
+        with:
+          target: web
+      - name: Upload Website
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-website
+          path: ${{ steps.build_web.outputs.archive-path }}
+          archive: false
+          
